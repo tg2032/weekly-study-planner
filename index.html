@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>週間学習プランナー</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FBF7EE;
+    --paper-line:#E4DCC8;
+    --ink:#2E2A22;
+    --ink-soft:#6B6355;
+    --math-a:#2B5D8C; --math-a-bg:#E7EFF6;
+    --math-b:#1E8271; --math-b-bg:#E4F2EE;
+    --kokugo:#A23B33; --kokugo-bg:#F5E8E6;
+    --rika:#5B7A2E; --rika-bg:#EEF2E3;
+    --shakai:#B5721E; --shakai-bg:#F7ECDA;
+    --daily:#6B4FA0; --daily-bg:#EEE9F5;
+    --kanyo:#C0574D; --kanyo-bg:#F7ECEA;
+    --test:#B0342B; --test-bg:#FBEAE8;
+    --off:#8A8272; --off-bg:#EDE9DE;
+    --winter:#2D6E8C; --winter-bg:#E6F1F5;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    background-image:linear-gradient(var(--paper-line) 1px, transparent 1px);
+    background-size:100% 42px;
+    color:var(--ink);
+    font-family:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN",sans-serif;
+    padding:24px 16px 60px;
+  }
+  .wrap{max-width:680px;margin:0 auto;}
+  header{margin-bottom:18px;}
+  .kicker{font-size:13px;color:var(--ink-soft);letter-spacing:.04em;}
+  h1{font-family:"Zen Maru Gothic",sans-serif;font-size:24px;font-weight:700;margin:4px 0 2px;line-height:1.35;}
+  .sub{font-size:13px;color:var(--ink-soft);margin:0;}
+
+  .events{
+    background:#fff;border:1px solid var(--paper-line);border-radius:12px;
+    padding:12px 14px;margin:16px 0;font-size:13px;
+  }
+  .events h2{font-family:"Zen Maru Gothic",sans-serif;font-size:14px;margin:0 0 8px;}
+  .events div{margin:4px 0;color:var(--ink-soft);}
+  .events b{color:var(--ink);font-weight:700;}
+
+  .tabs{display:flex;gap:8px;margin:18px 0 16px;}
+  .tab-btn{
+    flex:1;font-family:inherit;font-size:13.5px;font-weight:700;
+    padding:10px 8px;border-radius:10px;border:1px solid var(--paper-line);
+    background:#fff;color:var(--ink-soft);cursor:pointer;
+  }
+  .tab-btn.active.tueTab{background:var(--math-a-bg);color:var(--math-a);border-color:var(--math-a);}
+  .tab-btn.active.thuTab{background:var(--kokugo-bg);color:var(--kokugo);border-color:var(--kokugo);}
+  .tab-btn.active.weekTab{background:var(--daily-bg);color:var(--daily);border-color:var(--daily);}
+
+  .legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
+  .chip{font-size:12px;padding:4px 10px;border-radius:999px;font-weight:500;white-space:nowrap;}
+  .chip.mathA{background:var(--math-a-bg);color:var(--math-a);}
+  .chip.mathB{background:var(--math-b-bg);color:var(--math-b);}
+  .chip.kokugo{background:var(--kokugo-bg);color:var(--kokugo);}
+  .chip.rika{background:var(--rika-bg);color:var(--rika);}
+  .chip.shakai{background:var(--shakai-bg);color:var(--shakai);}
+  .chip.daily{background:var(--daily-bg);color:var(--daily);}
+  .chip.kanyo{background:var(--kanyo-bg);color:var(--kanyo);}
+
+  .panel{display:none;}
+  .panel.active{display:block;}
+
+  .weekcard{
+    background:#fff;border:1px solid var(--paper-line);border-radius:12px;
+    margin-bottom:10px;overflow:hidden;
+  }
+  .weekcard summary{
+    list-style:none;cursor:pointer;padding:12px 14px;
+    display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  }
+  .weekcard summary::-webkit-details-marker{display:none;}
+  .wc-date{font-family:"Zen Maru Gothic",sans-serif;font-weight:700;font-size:14.5px;}
+  .wc-badge{font-size:11.5px;padding:3px 9px;border-radius:999px;font-weight:700;}
+  .wc-badge.dnum{background:var(--daily-bg);color:var(--daily);}
+  .wc-badge.new{background:#FFF3D6;color:#8C6A0E;}
+  .wc-badge.testb{background:var(--test-bg);color:var(--test);}
+  .wc-badge.offb{background:var(--off-bg);color:var(--off);}
+  .wc-arrow{margin-left:auto;color:var(--ink-soft);font-size:12px;}
+  .weekcard[open] .wc-arrow::before{content:"閉じる";}
+  .weekcard.past{opacity:.55;}
+  .weekcard.current{border:2px solid var(--daily);box-shadow:0 2px 10px rgba(107,79,160,.15);}
+  .wc-badge.now{background:var(--daily);color:#fff;}
+  .weekcard:not([open]) .wc-arrow::before{content:"開く";}
+
+  .wc-body{padding:0 14px 14px;}
+  .note-box{
+    font-size:13px;color:var(--ink-soft);background:var(--paper);
+    border:1px dashed var(--paper-line);border-radius:8px;padding:10px 12px;margin-bottom:10px;
+  }
+  .note-box b{color:var(--ink);}
+
+  .task{
+    display:flex;align-items:flex-start;gap:10px;
+    background:var(--paper);border:1px solid var(--paper-line);border-radius:10px;
+    padding:9px 11px;margin-bottom:7px;
+  }
+  .task input[type=checkbox]{margin-top:3px;width:17px;height:17px;accent-color:var(--ink);flex-shrink:0;}
+  .task.done{opacity:.5;}
+  .task.done .task-label{text-decoration:line-through;}
+  .task-body{flex:1;min-width:0;}
+  .task-label{font-size:14px;font-weight:700;}
+  .task-note{
+    margin-top:3px;font-size:12.5px;color:var(--ink-soft);border:none;
+    border-bottom:1px dashed var(--paper-line);width:100%;padding:2px 0;
+    background:transparent;font-family:inherit;
+  }
+  .task-note:focus{outline:none;border-bottom-color:var(--ink-soft);}
+  .task-note:empty::before{content:attr(data-placeholder);color:#C9C1AE;}
+
+  footer{margin-top:20px;text-align:center;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
+  .reset-btn{
+    font-family:inherit;font-size:13px;color:var(--ink-soft);background:none;
+    border:1px solid var(--paper-line);border-radius:999px;padding:8px 18px;cursor:pointer;
+  }
+
+  @media print{
+    body{background:#fff;padding:8px;}
+    .tabs, .reset-btn, .wc-arrow, header .sub{display:none !important;}
+    .panel{display:none !important;}
+    .panel.printing{display:block !important;}
+    .weekcard{break-inside:avoid;page-break-inside:avoid;border-color:#999;}
+    .task{break-inside:avoid;page-break-inside:avoid;border-color:#bbb;}
+    .task-note:empty::before{color:#999;}
+  }
+
+  .week-nav{display:flex;gap:8px;justify-content:center;align-items:center;margin:0 0 14px;}
+  .week-nav button{font-family:inherit;font-size:13px;color:var(--ink-soft);background:#fff;border:1px solid var(--paper-line);border-radius:999px;padding:6px 14px;cursor:pointer;}
+  .week-nav .range{font-family:"Zen Maru Gothic",sans-serif;font-weight:700;font-size:15px;min-width:150px;text-align:center;}
+  @media print{ .week-nav{display:none !important;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="kicker">小学生・中学受験向け</div>
+    <h1>週間学習プランナー</h1>
+    <p class="sub">科目ごとの宿題を1週間に振り分けて、チェックしながら進めるシンプルなプランナーです。各項目のメモ欄は自由に書き換えられます。</p>
+  </header>
+
+  <div class="legend">
+    <span class="chip daily">毎日の教材(毎日)</span>
+    <span class="chip mathA">算数A(3日)</span>
+    <span class="chip mathB">算数B(3日)</span>
+    <span class="chip kokugo">国語A(3日)・国語B(3日)</span>
+    <span class="chip rika">理科(まとめて)</span>
+    <span class="chip shakai">社会(まとめて)</span>
+    <span class="chip kanyo">漢字・言葉の反復(6回)</span>
+  </div>
+
+  <div class="week-nav">
+    <button onclick="moveWeek(-1)">&larr; 前の週</button>
+    <span class="range" id="week-range"></span>
+    <button onclick="moveWeek(1)">次の週 &rarr;</button>
+  </div>
+
+  <div id="panel-week"></div>
+
+  <footer>
+    <button class="reset-btn" onclick="if(confirm('チェックとメモをすべて消しますか？')){renderAll();}">チェック・メモをリセット</button>
+    <button class="reset-btn" onclick="printSchedule()">🖨 印刷</button>
+  </footer>
+</div>
+
+<script>
+function task(label, cls, placeholder){
+  return `<div class="task"><input type="checkbox" onchange="this.closest('.task').classList.toggle('done',this.checked)">
+    <div class="task-body"><div class="task-label" style="color:var(--${cls})">${label}</div>
+    <div class="task-note" contenteditable data-placeholder="${placeholder||''}"></div></div></div>`;
+}
+
+const WEEK_PLAN = [
+  {day:'月', items:[
+    {label:'国語B（2/3）', cls:'kokugo'},
+    {label:'国語B（3/3）', cls:'kokugo'},
+    {label:'社会（まとめて）', cls:'shakai'},
+    {label:'漢字・言葉の反復　6回目', cls:'kanyo'},
+  ]},
+  {day:'火', classDay:true, items:[
+    {label:'算数A（1/3）', cls:'math-a', note:'授業当日の復習として軽く'},
+  ]},
+  {day:'水', items:[
+    {label:'算数A（2/3）', cls:'math-a'},
+    {label:'算数B（1/3）', cls:'math-b'},
+    {label:'漢字・言葉の反復　1回目', cls:'kanyo'},
+  ]},
+  {day:'木', classDay:true, items:[
+    {label:'国語A（1/3）', cls:'kokugo', note:'授業当日の復習として軽く'},
+  ]},
+  {day:'金', items:[
+    {label:'算数A（3/3）', cls:'math-a'},
+    {label:'算数B（2/3）', cls:'math-b'},
+    {label:'漢字・言葉の反復　2回目', cls:'kanyo'},
+  ]},
+  {day:'土', items:[
+    {label:'算数B（3/3）', cls:'math-b'},
+    {label:'理科（まとめて）', cls:'rika'},
+    {label:'漢字・言葉の反復　3回目', cls:'kanyo'},
+    {label:'漢字・言葉の反復　4回目', cls:'kanyo'},
+  ]},
+  {day:'日', items:[
+    {label:'国語A（2/3）', cls:'kokugo'},
+    {label:'国語A（3/3）', cls:'kokugo'},
+    {label:'国語B（1/3）', cls:'kokugo'},
+    {label:'漢字・言葉の反復　5回目', cls:'kanyo'},
+  ]},
+];
+
+let weekOffset = 0;
+function getMonday(offset){
+  const d = new Date(); d.setHours(0,0,0,0);
+  const day = d.getDay();
+  d.setDate(d.getDate() + (day === 0 ? -6 : 1 - day) + offset*7);
+  return d;
+}
+const fmtMD = d => `${d.getMonth()+1}/${d.getDate()}`;
+
+function renderAll(){
+  const monday = getMonday(weekOffset);
+  const sunday = new Date(monday); sunday.setDate(monday.getDate()+6);
+  document.getElementById('week-range').textContent = `${fmtMD(monday)} 〜 ${fmtMD(sunday)}` + (weekOffset===0 ? '（今週）' : '');
+
+  let html = `<div class="note-box"><b>今週の教材・範囲メモ：</b><span contenteditable style="border-bottom:1px dashed var(--paper-line);padding:0 4px;min-width:200px;display:inline-block;" data-placeholder="例）テキスト番号・ページなど"></span></div>
+    <div class="note-box">毎日：<b style="color:var(--daily)">毎日の教材</b>の復習を1項目。曜日は自由に前後してOKです。「授業日」(火・木想定)は軽めの復習にして、新しい宿題は翌日以降に回します。</div>`;
+  WEEK_PLAN.forEach((d,i)=>{
+    const dt = new Date(monday); dt.setDate(monday.getDate()+i);
+    html += `<details class="weekcard" open><summary><span class="wc-date">${d.day}曜日　${fmtMD(dt)}</span>`;
+    if(d.classDay) html += `<span class="wc-badge new">授業日</span>`;
+    html += `<span class="wc-arrow"></span></summary><div class="wc-body">`;
+    html += task('毎日の教材','daily','');
+    for(const it of d.items) html += task(it.label, it.cls, it.note||'');
+    html += `</div></details>`;
+  });
+  document.getElementById('panel-week').innerHTML = html;
+}
+function moveWeek(n){ weekOffset += n; renderAll(); }
+
+function printSchedule(){
+  document.querySelectorAll('details.weekcard').forEach(d=>d.open=true);
+  window.print();
+}
+renderAll();
+</script>
+</body>
+</html>
